@@ -1,7 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_pac/services/quiz_service.dart';
 
-class QuizScreen extends StatelessWidget {
+class QuizScreen extends StatefulWidget {
   const QuizScreen({super.key});
+
+  @override
+  _QuizScreenState createState() => _QuizScreenState();
+}
+
+class _QuizScreenState extends State<QuizScreen> {
+  List<dynamic>? quizData;
+  bool isLoading = true;
+  int currentQuestionIndex = 0; // Índice da pergunta atual
+
+  @override
+  void initState() {
+    super.initState();
+    _loadQuiz();
+  }
+
+  Future<void> _loadQuiz() async {
+    try {
+      final data = await QuizService().getQuiz();
+      setState(() {
+        quizData = data;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      print("Erro ao carregar o quiz: $e");
+    }
+  }
 
   void _showExitConfirmationDialog(BuildContext context) {
     showDialog(
@@ -9,7 +40,7 @@ class QuizScreen extends StatelessWidget {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: const Color(0xFFF7E6F3), // Fundo claro do diálogo
+          backgroundColor: const Color(0xFFF7E6F3),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
@@ -17,15 +48,12 @@ class QuizScreen extends StatelessWidget {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Ícone de informação
               const Icon(
                 Icons.info,
                 color: Color(0xFF9A1481),
                 size: 50,
               ),
               const SizedBox(height: 20),
-
-              // Texto de confirmação
               const Text(
                 'Tem certeza que quer sair do quiz?',
                 style: TextStyle(
@@ -35,14 +63,12 @@ class QuizScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
-
-              // Botões "SIM" e "NÃO"
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF9A1481), // Fundo roxo
+                      backgroundColor: const Color(0xFF9A1481),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
@@ -50,9 +76,8 @@ class QuizScreen extends StatelessWidget {
                           horizontal: 30, vertical: 10),
                     ),
                     onPressed: () {
-                      Navigator.of(context).pop(); // Fechar o diálogo
-                      Navigator.of(context)
-                          .pop(); // Voltar para a tela anterior
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pop();
                     },
                     child: const Text(
                       'SIM',
@@ -64,7 +89,7 @@ class QuizScreen extends StatelessWidget {
                   ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF9A1481), // Fundo roxo
+                      backgroundColor: const Color(0xFF9A1481),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
@@ -72,7 +97,7 @@ class QuizScreen extends StatelessWidget {
                           horizontal: 30, vertical: 10),
                     ),
                     onPressed: () {
-                      Navigator.of(context).pop(); // Apenas fechar o diálogo
+                      Navigator.of(context).pop();
                     },
                     child: const Text(
                       'NÃO',
@@ -91,10 +116,26 @@ class QuizScreen extends StatelessWidget {
     );
   }
 
+  void _nextQuestion() {
+    setState(() {
+      if (currentQuestionIndex < quizData!.length - 1) {
+        currentQuestionIndex++;
+      }
+    });
+  }
+
+  void _previousQuestion() {
+    setState(() {
+      if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF9A1481), // Fundo roxo
+      backgroundColor: const Color(0xFF9A1481),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -102,106 +143,106 @@ class QuizScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.close, color: Colors.white, size: 30),
             onPressed: () {
-              _showExitConfirmationDialog(
-                  context); // Mostrar diálogo de confirmação
+              _showExitConfirmationDialog(context);
             },
           ),
         ],
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Logo
-              Image.asset(
-                'images/logo_casa_izabel.png', // Caminho do logo
-                width: 250,
-                height: 250,
-              ),
-              const SizedBox(height: 40),
-
-              // Pergunta
-              const Text(
-                'pergunta', // Substitua pelo texto da pergunta
-                style: TextStyle(
-                  fontSize: 24,
-                  color: Colors.white,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 40),
-
-              // Contador de perguntas
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Text(
-                  '01/20', // Exemplo de contador
-                  style: TextStyle(
-                    color: Color(0xFF9A1481),
-                    fontSize: 16,
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : quizData != null && quizData!.isNotEmpty
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'images/logo_casa_izabel.png',
+                          width: 250,
+                          height: 250,
+                        ),
+                        const SizedBox(height: 40),
+                        Text(
+                          quizData![currentQuestionIndex]['pergunta'] ??
+                              'Pergunta não disponível',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 40),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '${currentQuestionIndex + 1}/${quizData!.length}',
+                            style: const TextStyle(
+                              color: Color(0xFF9A1481),
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 60),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFF7E6F3),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(40),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 40, vertical: 14),
+                          ),
+                          onPressed: () {
+                            _nextQuestion(); // Ir para a próxima pergunta
+                          },
+                          child: const Text(
+                            'SIM',
+                            style: TextStyle(
+                              color: Color(0xFF9A1481),
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFF7E6F3),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(40),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 40, vertical: 14),
+                          ),
+                          onPressed: () {
+                            _previousQuestion(); // Voltar para a pergunta anterior
+                          },
+                          child: const Text(
+                            'NÃO',
+                            style: TextStyle(
+                              color: Color(0xFF9A1481),
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : const Center(
+                  child: Text(
+                    'Erro ao carregar o quiz',
+                    style: TextStyle(color: Colors.white),
                   ),
                 ),
-              ),
-              const SizedBox(height: 60),
-
-              // Botão "SIM"
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF7E6F3), // Fundo claro
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(40),
-                  ),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
-                ),
-                onPressed: () {
-                  // Ação do botão "SIM"
-                },
-                child: const Text(
-                  'SIM',
-                  style: TextStyle(
-                    color: Color(0xFF9A1481),
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Botão "NÃO"
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF7E6F3), // Fundo claro
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(40),
-                  ),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
-                ),
-                onPressed: () {
-                  // Ação do botão "NÃO"
-                },
-                child: const Text(
-                  'NÃO',
-                  style: TextStyle(
-                    color: Color(0xFF9A1481),
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

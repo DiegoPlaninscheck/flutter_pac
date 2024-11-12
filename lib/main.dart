@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_pac/pages/ong_page.dart';
+// import 'package:flutter_pac/pages/ong_page.dart';
 // import 'package:flutter_pac/pages/about_page.dart';
-// import 'package:flutter_pac/pages/quiz_page.dart';
+import 'package:flutter_pac/pages/quiz_page.dart';
 // import 'package:flutter_pac/pages/home_page.dart';
 
 void main() {
@@ -20,6 +20,6 @@ class MyApp extends StatelessWidget {
           useMaterial3: true,
         ),
         debugShowCheckedModeBanner: false,
-        home: const OngsScreen());
+        home: const QuizScreen());
   }
 }
